@@ -50,13 +50,15 @@
 
 /*==================[macros and definitions]=================================*/
 #define FIRST_START_DELAY_MS 350
-#define PERIOD_MS 250
+#define PERIOD_MS 20
 
 /*==================[internal data declaration]==============================*/
 
 /*==================[internal functions declaration]=========================*/
 
 /*==================[internal data definition]===============================*/
+int duty = 10;
+int rgb = 0;
 
 /*==================[external data definition]===============================*/
 
@@ -113,6 +115,7 @@ void ErrorHook(void)
 TASK(InitTask)
 {
    bsp_init();
+   mcu_pwm_setPin(rgb);
 
    SetRelAlarm(ActivatePeriodicTask, FIRST_START_DELAY_MS, PERIOD_MS);
 
@@ -127,10 +130,23 @@ TASK(InitTask)
  */
 TASK(PeriodicTask)
 {
-   //bsp_ledAction(BOARD_LED_ID_1, BSP_LED_ACTION_TOGGLE);
-   int duty = 100;
-   duty += 100;
-   if(duty == 1000) duty = 100;
+   duty+=20;
+
+   if(duty > 1000)
+   {
+      duty = 1;
+
+      if(rgb > 1)
+      {
+         rgb = 0;
+      }
+      else
+      {
+         rgb++;
+      }
+      mcu_pwm_setPin(rgb);
+   }
+
    mcu_pwm_setDutyCicle(duty);
 
    TerminateTask();
