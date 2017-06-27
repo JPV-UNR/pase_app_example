@@ -227,6 +227,13 @@ extern int32_t mcu_gpio_setEventInput(mcu_gpio_pinId_enum id,
    return ret;
 }
 
+extern void mcu_pwm_init(void)
+{
+   Chip_TIMER_Init(LPC_TIMER1);
+   Chip_TIMER_PrescaleSet(LPC_TIMER1,
+                          Chip_Clock_GetRate(CLK_MX_TIMER1) / 1000000 - 1);
+}
+
 ISR(GPIOINTHandler0)
 {
    Chip_PININT_ClearIntStatus(LPC_GPIO_PIN_INT, PININTCH0);
