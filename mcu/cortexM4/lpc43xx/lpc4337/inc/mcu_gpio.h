@@ -96,6 +96,8 @@ extern bool mcu_gpio_readPin(mcu_gpio_pinId_enum id);
 extern int32_t mcu_gpio_setEventInput(mcu_gpio_pinId_enum id,
                                       mcu_gpio_eventTypeInput_enum evType,
                                       mcu_gpio_eventInput_callBack_type cb);
+extern void mcu_pwm_init(void);
+extern void mcu_pwm_setDutyCicle(uint32_t duty);
 /*==================[cplusplus]==============================================*/
 #ifdef __cplusplus
 }

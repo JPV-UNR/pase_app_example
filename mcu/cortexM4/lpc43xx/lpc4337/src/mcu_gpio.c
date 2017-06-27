@@ -229,9 +229,49 @@ extern int32_t mcu_gpio_setEventInput(mcu_gpio_pinId_enum id,
 
 extern void mcu_pwm_init(void)
 {
+   SystemCoreClockUpdate();
+   SysTick_Config(SystemCoreClock/1000);
+
    Chip_TIMER_Init(LPC_TIMER1);
    Chip_TIMER_PrescaleSet(LPC_TIMER1,
                           Chip_Clock_GetRate(CLK_MX_TIMER1) / 1000000 - 1);
+
+   /* Match 0 (period) */
+   Chip_TIMER_MatchEnableInt(LPC_TIMER1, 0);
+   Chip_TIMER_ResetOnMatchEnable(LPC_TIMER1, 0);
+   Chip_TIMER_StopOnMatchDisable(LPC_TIMER1, 0);
+   Chip_TIMER_SetMatch(LPC_TIMER1, 0, 1000);
+
+   /* Match 1 (duty) */
+   Chip_TIMER_MatchEnableInt(LPC_TIMER1, 1);
+   Chip_TIMER_ResetOnMatchDisable(LPC_TIMER1, 1);
+   Chip_TIMER_StopOnMatchDisable(LPC_TIMER1, 1);
+   Chip_TIMER_SetMatch(LPC_TIMER1, 1, 100);
+
+   Chip_TIMER_Reset(LPC_TIMER1);
+   Chip_TIMER_Enable(LPC_TIMER1);
+
+   NVIC_EnableIRQ(TIMER1_IRQn);
+}
+
+extern void mcu_pwm_setDutyCicle(uint32_t duty)
+{
+   Chip_TIMER_SetMatch(LPC_TIMER1, 1, duty);
+   Chip_TIMER_Reset(LPC_TIMER1);
+   Chip_TIMER_ClearMatch(LPC_TIMER1, 1);
+   Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
+}
+
+ISR(TIMER1_IRQHandler)
+{
+   if (Chip_TIMER_MatchPending(LPC_TIMER1, 0)) {
+      Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
+      mcu_gpio_setOut(MCU_GPIO_PIN_ID_75, 1);
+   }
+   if (Chip_TIMER_MatchPending(LPC_TIMER1, 1)) {
+      Chip_TIMER_ClearMatch(LPC_TIMER1, 1);
+      mcu_gpio_setOut(MCU_GPIO_PIN_ID_75, 0);
+   }
 }
 
 ISR(GPIOINTHandler0)
