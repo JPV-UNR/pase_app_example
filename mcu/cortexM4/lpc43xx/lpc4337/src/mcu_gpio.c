@@ -79,7 +79,7 @@ typedef struct
 static const p_gpio_type p_gpio[] =
 {
    {{2,0},   {5,0},   FUNC4},
-   {{2,1},   {5,1},   FUNC3},
+   {{2,1},   {5,1},   FUNC4},
    {{2,2},   {5,2},   FUNC4},
    {{2,10},  {0,14},  FUNC0},
    {{2,11},  {1,11},  FUNC0},
@@ -103,6 +103,8 @@ static const LPC43XX_IRQn_Type pinIntIrqMap[] =
    PIN_INT6_IRQn,
    PIN_INT7_IRQn,
 };
+
+static mcu_gpio_pinId_enum pwm_pin_out;
 
 /*==================[internal functions declaration]=========================*/
 
@@ -251,6 +253,8 @@ extern void mcu_pwm_init(void)
    Chip_TIMER_Reset(LPC_TIMER1);
    Chip_TIMER_Enable(LPC_TIMER1);
 
+   pwm_pin_out = MCU_GPIO_PIN_ID_75;
+
    NVIC_EnableIRQ(TIMER1_IRQn);
 }
 
@@ -262,15 +266,21 @@ extern void mcu_pwm_setDutyCicle(uint32_t duty)
    Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
 }
 
+extern void mcu_pwm_setPin(mcu_gpio_pinId_enum id)
+{
+   mcu_gpio_setOut(pwm_pin_out, 0);
+   pwm_pin_out = id;
+}
+
 ISR(TIMER1_IRQHandler)
 {
    if (Chip_TIMER_MatchPending(LPC_TIMER1, 0)) {
       Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
-      mcu_gpio_setOut(MCU_GPIO_PIN_ID_75, 1);
+      mcu_gpio_setOut(pwm_pin_out, 1);
    }
    if (Chip_TIMER_MatchPending(LPC_TIMER1, 1)) {
       Chip_TIMER_ClearMatch(LPC_TIMER1, 1);
-      mcu_gpio_setOut(MCU_GPIO_PIN_ID_75, 0);
+      mcu_gpio_setOut(pwm_pin_out, 0);
    }
 }
 
