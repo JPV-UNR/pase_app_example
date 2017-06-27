@@ -94,6 +94,7 @@ extern void board_init(void)
    {
       mcu_gpio_setDirection(switchMap[i], MCU_GPIO_DIRECTION_INPUT);
    }
+   mcu_pwm_init();
 }
 
 extern void board_ledToggle(board_ledId_enum id)
