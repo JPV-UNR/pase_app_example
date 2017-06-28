@@ -238,6 +238,7 @@ extern void mcu_pwm_init(void)
    Chip_TIMER_PrescaleSet(LPC_TIMER1,
                           Chip_Clock_GetRate(CLK_MX_TIMER1) / 1000000 - 1);
 
+   /* Set default period and duty */
    /* Match 0 (period) */
    Chip_TIMER_MatchEnableInt(LPC_TIMER1, 0);
    Chip_TIMER_ResetOnMatchEnable(LPC_TIMER1, 0);
@@ -253,9 +254,38 @@ extern void mcu_pwm_init(void)
    Chip_TIMER_Reset(LPC_TIMER1);
    Chip_TIMER_Enable(LPC_TIMER1);
 
-   pwm_pin_out = MCU_GPIO_PIN_ID_75;
+   /* No pin configured */
+   pwm_pin_out = -1;
 
    NVIC_EnableIRQ(TIMER1_IRQn);
+}
+
+extern void configPWM(mcu_gpio_pinId_enum pin, uint32_t period)
+{
+   /* Check if exist a valid pin before*/
+   if (pwm_pin_out > 0)
+   {
+      /* Turn off last led */
+      mcu_gpio_setOut(pwm_pin_out, 0);
+      /* Change Pin */
+      pwm_pin_out = pin;
+   }
+   else if (pin == -1)
+   {
+      /* Set pin -1 to turn off */
+      pwm_pin_out = pin;
+   }
+   else
+   {
+      /* Set Pin -> first time */
+      pwm_pin_out = pin;
+   }
+
+   /* Set period */
+   Chip_TIMER_MatchEnableInt(LPC_TIMER1, 0);
+   Chip_TIMER_ResetOnMatchEnable(LPC_TIMER1, 0);
+   Chip_TIMER_StopOnMatchDisable(LPC_TIMER1, 0);
+   Chip_TIMER_SetMatch(LPC_TIMER1, 0, period);
 }
 
 extern void mcu_pwm_setDutyCicle(uint32_t duty)
@@ -264,12 +294,6 @@ extern void mcu_pwm_setDutyCicle(uint32_t duty)
    Chip_TIMER_Reset(LPC_TIMER1);
    Chip_TIMER_ClearMatch(LPC_TIMER1, 1);
    Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
-}
-
-extern void mcu_pwm_setPin(mcu_gpio_pinId_enum id)
-{
-   mcu_gpio_setOut(pwm_pin_out, 0);
-   pwm_pin_out = id;
 }
 
 ISR(TIMER1_IRQHandler)
