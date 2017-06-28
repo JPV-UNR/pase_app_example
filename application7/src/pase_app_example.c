@@ -57,8 +57,6 @@
 /*==================[internal functions declaration]=========================*/
 
 /*==================[internal data definition]===============================*/
-int duty = 10;
-int rgb = 0;
 
 /*==================[external data definition]===============================*/
 
@@ -115,7 +113,6 @@ void ErrorHook(void)
 TASK(InitTask)
 {
    bsp_init();
-   mcu_pwm_setPin(rgb);
 
    SetRelAlarm(ActivatePeriodicTask, FIRST_START_DELAY_MS, PERIOD_MS);
 
@@ -130,24 +127,9 @@ TASK(InitTask)
  */
 TASK(PeriodicTask)
 {
-   duty+=20;
+   configPWM(1, 10000);
 
-   if(duty > 1000)
-   {
-      duty = 1;
-
-      if(rgb > 1)
-      {
-         rgb = 0;
-      }
-      else
-      {
-         rgb++;
-      }
-      mcu_pwm_setPin(rgb);
-   }
-
-   mcu_pwm_setDutyCicle(duty);
+   mcu_pwm_setDutyCicle(5000);
 
    TerminateTask();
 }
